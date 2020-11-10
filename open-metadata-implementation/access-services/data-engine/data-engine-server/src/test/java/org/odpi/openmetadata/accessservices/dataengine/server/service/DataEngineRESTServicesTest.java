@@ -125,9 +125,6 @@ class DataEngineRESTServicesTest {
     private Process process = getProcess(Collections.singletonList(portImplementation), Collections.singletonList(portAlias),
             Collections.emptyList());
 
-    @Captor
-    private ArgumentCaptor<InstanceStatus> instanceStatuses;
-
     @BeforeEach
     void before() {
         Field instanceHandlerField = ReflectionUtils.findField(DataEngineRESTServices.class, "instanceHandler");
@@ -518,7 +515,6 @@ class DataEngineRESTServicesTest {
         verify(portHandler, times(1)).addPortDelegationRelationship(USER, GUID, PortType.INOUT_PORT, DELEGATED_QUALIFIED_NAME,
                 EXTERNAL_SOURCE_DE_QUALIFIED_NAME);
 
-        verify(processHandler, times(1)).updateProcessStatus(USER, GUID, InstanceStatus.ACTIVE);
         assertEquals(GUID, response.getGUIDs().get(0));
     }
 
@@ -629,10 +625,6 @@ class DataEngineRESTServicesTest {
         verify(portHandler, times(1)).addPortDelegationRelationship(USER, PORT_GUID, PortType.INOUT_PORT,
                 DELEGATED_QUALIFIED_NAME, EXTERNAL_SOURCE_DE_QUALIFIED_NAME);
 
-        verify(processHandler, times(2)).updateProcessStatus(any(), any(), instanceStatuses.capture());
-        List<InstanceStatus> allValues = instanceStatuses.getAllValues();
-        assertEquals(2, allValues.size());
-        assertTrue(allValues.containsAll(Arrays.asList(InstanceStatus.DRAFT, InstanceStatus.ACTIVE)));
         assertEquals(GUID, response.getGUIDs().get(0));
     }
 

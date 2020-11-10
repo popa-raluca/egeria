@@ -36,7 +36,6 @@ import org.odpi.openmetadata.frameworks.connectors.ffdc.InvalidParameterExceptio
 import org.odpi.openmetadata.frameworks.connectors.ffdc.PropertyServerException;
 import org.odpi.openmetadata.frameworks.connectors.ffdc.UserNotAuthorizedException;
 import org.odpi.openmetadata.repositoryservices.connectors.stores.metadatacollectionstore.properties.instances.EntityDetail;
-import org.odpi.openmetadata.repositoryservices.connectors.stores.metadatacollectionstore.properties.instances.InstanceStatus;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
@@ -500,10 +499,6 @@ public class DataEngineRESTServices {
             if (guidResponse.getRelatedHTTPCode() == HttpStatus.OK.value()) {
                 String processGUID = guidResponse.getGUID();
                 process.setGUID(processGUID);
-                VoidResponse updateStatusResponse = updateProcessStatus(userId, serverName, processGUID, InstanceStatus.ACTIVE);
-                if (updateStatusResponse.getRelatedHTTPCode() != 200) {
-                    captureException(updateStatusResponse, guidResponse);
-                }
                 createdProcesses.add(guidResponse);
             } else {
                 failedProcesses.add(guidResponse);
@@ -672,29 +667,6 @@ public class DataEngineRESTServices {
         response.setExceptionProperties(initialResponse.getExceptionProperties());
     }
 
-    private VoidResponse updateProcessStatus(String userId, String serverName, String processGUID, InstanceStatus instanceStatus) {
-        final String methodName = "updateProcessStatus";
-
-        log.debug(DEBUG_MESSAGE_METHOD_DETAILS, methodName, processGUID);
-
-        VoidResponse response = new VoidResponse();
-        try {
-            ProcessHandler processHandler = instanceHandler.getProcessHandler(userId, serverName, methodName);
-
-            processHandler.updateProcessStatus(userId, processGUID, instanceStatus);
-        } catch (InvalidParameterException error) {
-            restExceptionHandler.captureInvalidParameterException(response, error);
-        } catch (PropertyServerException error) {
-            restExceptionHandler.capturePropertyServerException(response, error);
-        } catch (UserNotAuthorizedException error) {
-            restExceptionHandler.captureUserNotAuthorizedException(response, error);
-        }
-
-        log.debug(DEBUG_MESSAGE_METHOD_RETURN, methodName, response);
-
-        return response;
-    }
-
     /**
      * Create the process with ports, schema types and lineage mappings
      *
@@ -741,7 +713,6 @@ public class DataEngineRESTServices {
             } else {
                 processGUID = processEntity.get().getGUID();
                 processHandler.updateProcess(userId, processEntity.get(), process);
-                processHandler.updateProcessStatus(userId, processGUID, InstanceStatus.DRAFT);
 
                 if (updateSemantic == UpdateSemantic.REPLACE) {
                     deleteObsoletePorts(userId, serverName, portImplementationGUIDs, processGUID,
@@ -796,10 +767,6 @@ public class DataEngineRESTServices {
     private void addProcessHierarchyRelationships(String userId, String serverName, List<Process> processes, ProcessListResponse response,
                                                   String externalSourceName) {
         final String methodName = "addProcessHierarchyRelationships";
-        //TODO clarify intended behavior for process hierarchy relationships - for now, a process is not failed if the relationship fails
-        // to be created
-
-        //       ArrayList<String> failedGUIDS = new ArrayList<>();
 
         // add the ProcessHierarchy relationships only for successfully created processes
         processes.parallelStream().filter(process -> response.getGUIDs().contains(process.getGUID())).forEach(process -> {
@@ -822,17 +789,8 @@ public class DataEngineRESTServices {
                     restExceptionHandler.captureUserNotAuthorizedException(response, error);
                 }
             }
-//            // failed to create a processHierarchy relationship, set the status of the process back to DRAFT and add the processGUID
-//            // to the list of failed processes
-//            if (response.getRelatedHTTPCode() != HttpStatus.OK.value()) {
-//                updateProcessStatus(userId, serverName, processGUID, InstanceStatus.DRAFT);
-//                failedGUIDS.add(processGUID);
-//            }
         });
 
-//        // update the ProcessListResponse to reflect the updated status for the created/failed processes
-//        response.getGUIDs().removeAll(failedGUIDS);
-//        response.getFailedGUIDs().addAll(failedGUIDS);
     }
 
     private void addProcessPortRelationships(String userId, String serverName, String processGUID, Set<String> portGUIDs, GUIDResponse response,

@@ -111,7 +111,7 @@ class ProcessHandlerTest {
 
         mockTypeDef(ProcessPropertiesMapper.PROCESS_TYPE_NAME, ProcessPropertiesMapper.PROCESS_TYPE_GUID);
 
-        when(dataEngineCommonHandler.createExternalEntity(USER, null, InstanceStatus.DRAFT,
+        when(dataEngineCommonHandler.createExternalEntity(USER, null, InstanceStatus.ACTIVE,
                 ProcessPropertiesMapper.PROCESS_TYPE_NAME, EXTERNAL_SOURCE_DE_QUALIFIED_NAME)).thenReturn(GUID);
 
         when(securityVerifier.initializeAssetZones(any(), any())).thenReturn(ZONES);
@@ -136,7 +136,7 @@ class ProcessHandlerTest {
         String methodName = "createProcess";
 
         UserNotAuthorizedException mockedException = mockException(UserNotAuthorizedException.class, methodName);
-        when(dataEngineCommonHandler.createExternalEntity(USER, null, InstanceStatus.DRAFT,
+        when(dataEngineCommonHandler.createExternalEntity(USER, null, InstanceStatus.ACTIVE,
                 ProcessPropertiesMapper.PROCESS_TYPE_NAME, EXTERNAL_SOURCE_DE_QUALIFIED_NAME)).thenThrow(mockedException);
 
         UserNotAuthorizedException thrown = assertThrows(UserNotAuthorizedException.class, () ->
@@ -257,23 +257,6 @@ class ProcessHandlerTest {
                 processHandler.addProcessPortRelationship(USER, PROCESS_GUID, GUID, EXTERNAL_SOURCE_DE_QUALIFIED_NAME));
 
         assertTrue(thrown.getMessage().contains("OMAS-DATA-ENGINE-404-001 "));
-    }
-
-    @Test
-    void updateProcessStatus() throws InvalidParameterException, PropertyServerException, UserNotAuthorizedException {
-        final String methodName = "updateProcessStatus";
-
-        mockTypeDef(ProcessPropertiesMapper.PROCESS_TYPE_NAME, ProcessPropertiesMapper.PROCESS_TYPE_GUID);
-
-        processHandler.updateProcessStatus(USER, PROCESS_GUID, InstanceStatus.ACTIVE);
-
-        verify(invalidParameterHandler, times(1)).validateUserId(USER, methodName);
-        verify(invalidParameterHandler, times(1)).validateGUID(PROCESS_GUID,
-                PortPropertiesMapper.GUID_PROPERTY_NAME, methodName);
-
-        verify(repositoryHandler, times(1)).updateEntityStatus(USER, PROCESS_GUID,
-                ProcessPropertiesMapper.PROCESS_TYPE_GUID, ProcessPropertiesMapper.PROCESS_TYPE_NAME,
-                InstanceStatus.ACTIVE, methodName);
     }
 
     @Test

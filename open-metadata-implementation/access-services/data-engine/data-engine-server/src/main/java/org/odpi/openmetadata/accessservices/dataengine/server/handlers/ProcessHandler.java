@@ -121,7 +121,7 @@ public class ProcessHandler {
                 process.getDescription(), process.getOwner(), process.getOwnerType(), process.getZoneMembership(), process.getLatestChange(),
                 process.getFormula(), null, null, repositoryHelper, serverName, serviceName);
 
-        String processGUID = dataEngineCommonHandler.createExternalEntity(userId, builder.getInstanceProperties(methodName), InstanceStatus.DRAFT,
+        String processGUID = dataEngineCommonHandler.createExternalEntity(userId, builder.getInstanceProperties(methodName), InstanceStatus.ACTIVE,
                 ProcessPropertiesMapper.PROCESS_TYPE_NAME, externalSourceName);
 
         classifyAsset(userId, process, processGUID);
@@ -212,30 +212,6 @@ public class ProcessHandler {
                                                                                                                           PropertyServerException {
         dataEngineCommonHandler.createOrUpdateExternalRelationship(userId, processGUID, portGUID, ProcessPropertiesMapper.PROCESS_PORT_TYPE_NAME,
                 ProcessPropertiesMapper.PROCESS_TYPE_NAME, externalSourceName, null);
-    }
-
-    /**
-     * Update the process instance status
-     *
-     * @param userId         the name of the calling user
-     * @param guid           the guid name of the process
-     * @param instanceStatus the status of the process
-     *
-     * @throws InvalidParameterException  the bean properties are invalid
-     * @throws UserNotAuthorizedException user not authorized to issue this request
-     * @throws PropertyServerException    problem accessing the property server
-     */
-    public void updateProcessStatus(String userId, String guid, InstanceStatus instanceStatus) throws InvalidParameterException,
-                                                                                                      UserNotAuthorizedException,
-                                                                                                      PropertyServerException {
-
-        final String methodName = "updateProcessStatus";
-
-        invalidParameterHandler.validateUserId(userId, methodName);
-        invalidParameterHandler.validateGUID(guid, ProcessPropertiesMapper.GUID_PROPERTY_NAME, methodName);
-
-        TypeDef entityTypeDef = repositoryHelper.getTypeDefByName(userId, ProcessPropertiesMapper.PROCESS_TYPE_NAME);
-        repositoryHandler.updateEntityStatus(userId, guid, entityTypeDef.getGUID(), entityTypeDef.getName(), instanceStatus, methodName);
     }
 
     /**
